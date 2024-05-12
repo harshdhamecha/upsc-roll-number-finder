@@ -9,6 +9,8 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import Select
+from selenium.webdriver.chrome.options import Options
+
 
 rec_model = PaddleOCR(lang='en')
 unattended_roll_numbers = []
@@ -40,16 +42,18 @@ def find_roll_number():
     base_url = "https://upsconline.nic.in/marksheet/csp_premark_2023/login.php"
     success_page_url = "https://upsconline.nic.in/marksheet/csp_premark_2023/view_detail.php?tikl="
 
-    # roll_numbers = ['1234512', '1234568', '1231231', '7200344']
-    roll_numbers = ['7200344']
+    roll_numbers = ['1234512', '1234568', '1231231', '7200344']
+    # roll_numbers = ['1231231', '7200344']
+    chrome_options = Options()
+    # chrome_options.add_argument("--headless") 
+    chrome_options.add_argument("--disable-infobars") 
+    driver = webdriver.Chrome(options=chrome_options)
 
-    driver = webdriver.Chrome()
-    driver.get(base_url)
-
-    for roll_number in tqdm(roll_numbers):
+    for i, roll_number in tqdm(enumerate(roll_numbers)):
 
         try:
             driver.refresh()
+            driver.get(base_url)
             # Find and fill the roll number input field
             rollno_input = driver.find_element(By.NAME, "candidate_rollno")
             rollno_input.clear()
@@ -76,27 +80,27 @@ def find_roll_number():
             day_4.click()
 
             time.sleep(2)
-            # Find the captcha image element
-            captcha_img = driver.find_element(By.CSS_SELECTOR, "img#captchaimgroll")  # Adjust the ID as per your HTML
+            # # Find the captcha image element
+            # captcha_img = driver.find_element(By.CSS_SELECTOR, "img#captchaimgroll")  # Adjust the ID as per your HTML
 
-            # Get the location and size of the captcha image
-            x = captcha_img.location['x']
-            y = captcha_img.location['y']
-            width = captcha_img.size['width']
-            height = captcha_img.size['height']
+            # # Get the location and size of the captcha image
+            # x = captcha_img.location['x']
+            # y = captcha_img.location['y']
+            # width = captcha_img.size['width']
+            # height = captcha_img.size['height']
             
-            print('\n', x, y, width, height)
+            # print('\n', x, y, width, height)
 
             # Take a screenshot of the entire webpage
-            driver.save_screenshot("screenshot.png")
-            captcha_image = Image.open("screenshot.png")
-            captcha_crop = captcha_image.crop((x, y, x + width, y + height))
-            captcha_crop.save("captcha.png")
-            # captcha_image = cv2.imread("screenshot.png")
-            # captcha_crop = captcha_image[y: y+height, x: x+width, :]
-            # cv2.imwrite("captcha.png", captcha_crop)
+            driver.save_screenshot(f"screenshot_{i}.png")
+            # captcha_image = Image.open("screenshot.png")
+            # captcha_crop = captcha_image.crop((x, y, x + width, y + height))
+            # captcha_crop.save("captcha.png")
+            captcha_image = cv2.imread(f"screenshot_{i}.png")
+            captcha_crop = captcha_image[450: 500, 650: 830, :]
+            cv2.imwrite(f"captcha_{i}.png", captcha_crop)
 
-            captcha_text = get_captcha_text("captcha.png")
+            captcha_text = get_captcha_text(f"captcha_{i}.png")
 
             print('\n', captcha_text)
 
@@ -106,7 +110,7 @@ def find_roll_number():
             else:
                 # Find and fill the captcha input field
                 captcha_input = driver.find_element(By.NAME, "letters_code")
-                # captcha_input.clear()
+                captcha_input.clear()
                 captcha_input.send_keys(captcha_text)
 
                 # Find and click the submit button
