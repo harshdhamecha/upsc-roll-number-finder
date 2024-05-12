@@ -19,7 +19,7 @@ unattended_roll_numbers = []
 # Function to generate all possible roll numbers list
 def generate_roll_numbers():
     roll_numbers = []
-    for i in range(1000000, 10000000):  # Start from 1000000 (7 digits)
+    for i in range(1000134, 10000000):  # Start from 1000000 (7 digits)
         roll_numbers.append(str(i))
     return roll_numbers
 
@@ -45,6 +45,7 @@ def find_roll_number():
 
     roll_numbers = generate_roll_numbers()
     driver = webdriver.Chrome()
+    driver.get(base_url)
 
     for roll_number in tqdm(roll_numbers):
 
@@ -54,7 +55,7 @@ def find_roll_number():
 
             # Find and fill the roll number input field
             rollno_input = driver.find_element(By.NAME, "candidate_rollno")
-            rollno_input.clear()
+            # rollno_input.clear()
             rollno_input.send_keys(roll_number)
 
             # Find and fill the date of birth input field
@@ -62,7 +63,7 @@ def find_roll_number():
             dob_input.click()
 
             # Wait for the date picker to fully load (adjust wait time as needed)
-            wait = WebDriverWait(driver, 10)
+            wait = WebDriverWait(driver, 5)
             wait.until(EC.visibility_of_element_located((By.ID, "ui-datepicker-div")))
 
             # Select the month (August) from the dropdown using Select class
@@ -77,7 +78,7 @@ def find_roll_number():
             day_18 = driver.find_element(By.XPATH, "//a[text()='18']")
             day_18.click()
 
-            time.sleep(2)
+            time.sleep(1)
 
             # Take a screenshot of the entire webpage
             driver.save_screenshot("screenshot.png")
@@ -93,7 +94,7 @@ def find_roll_number():
             else:
                 # Find and fill the captcha input field
                 captcha_input = driver.find_element(By.NAME, "letters_code")
-                captcha_input.clear()
+                # captcha_input.clear()
                 captcha_input.send_keys(captcha_text)
 
                 # Find and click the submit button
@@ -101,12 +102,15 @@ def find_roll_number():
                 submit_button.click()
 
                 # Wait for the page to load after form submission
-                WebDriverWait(driver, 10).until(EC.url_contains(success_page_url))
+                WebDriverWait(driver, 5).until(EC.url_contains(success_page_url))
 
                 # Check if the results page indicates success
                 if success_page_url in driver.current_url:
                     return roll_number
                 
+                else:
+                    continue
+
         except Exception as e:
             print(e)
 
