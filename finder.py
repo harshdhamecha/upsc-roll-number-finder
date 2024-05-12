@@ -3,19 +3,20 @@ import re
 from paddleocr import PaddleOCR
 import cv2
 import time
-from PIL import Image
+import logging
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import Select
-from selenium.webdriver.chrome.options import Options
+logging.getLogger('ppocr').setLevel(logging.ERROR)
 
 
 rec_model = PaddleOCR(lang='en')
 unattended_roll_numbers = []
 
 
+# Function to generate all possible roll numbers list
 def generate_roll_numbers():
     roll_numbers = []
     for i in range(1000000, 10000000):  # Start from 1000000 (7 digits)
@@ -42,18 +43,15 @@ def find_roll_number():
     base_url = "https://upsconline.nic.in/marksheet/csp_premark_2023/login.php"
     success_page_url = "https://upsconline.nic.in/marksheet/csp_premark_2023/view_detail.php?tikl="
 
-    roll_numbers = ['1234512', '1234568', '1231231', '7200344']
-    # roll_numbers = ['1231231', '7200344']
-    chrome_options = Options()
-    # chrome_options.add_argument("--headless") 
-    chrome_options.add_argument("--disable-infobars") 
-    driver = webdriver.Chrome(options=chrome_options)
+    roll_numbers = generate_roll_numbers()
+    driver = webdriver.Chrome()
 
-    for i, roll_number in tqdm(enumerate(roll_numbers)):
+    for roll_number in tqdm(roll_numbers):
 
         try:
             driver.refresh()
             driver.get(base_url)
+
             # Find and fill the roll number input field
             rollno_input = driver.find_element(By.NAME, "candidate_rollno")
             rollno_input.clear()
@@ -69,40 +67,25 @@ def find_roll_number():
 
             # Select the month (August) from the dropdown using Select class
             month_dropdown = Select(driver.find_element(By.CLASS_NAME, "ui-datepicker-month"))
-            month_dropdown.select_by_visible_text("Aug")
+            month_dropdown.select_by_visible_text("May")
 
             # Select the year (1999) from the dropdown using Select class
             year_dropdown = Select(driver.find_element(By.CLASS_NAME, "ui-datepicker-year"))
             year_dropdown.select_by_visible_text("1999")
 
             # Find and click on the date 4th in the date picker
-            day_4 = driver.find_element(By.XPATH, "//a[text()='4']")
-            day_4.click()
+            day_18 = driver.find_element(By.XPATH, "//a[text()='18']")
+            day_18.click()
 
             time.sleep(2)
-            # # Find the captcha image element
-            # captcha_img = driver.find_element(By.CSS_SELECTOR, "img#captchaimgroll")  # Adjust the ID as per your HTML
-
-            # # Get the location and size of the captcha image
-            # x = captcha_img.location['x']
-            # y = captcha_img.location['y']
-            # width = captcha_img.size['width']
-            # height = captcha_img.size['height']
-            
-            # print('\n', x, y, width, height)
 
             # Take a screenshot of the entire webpage
-            driver.save_screenshot(f"screenshot_{i}.png")
-            # captcha_image = Image.open("screenshot.png")
-            # captcha_crop = captcha_image.crop((x, y, x + width, y + height))
-            # captcha_crop.save("captcha.png")
-            captcha_image = cv2.imread(f"screenshot_{i}.png")
+            driver.save_screenshot("screenshot.png")
+            captcha_image = cv2.imread("screenshot.png")
             captcha_crop = captcha_image[450: 500, 650: 830, :]
-            cv2.imwrite(f"captcha_{i}.png", captcha_crop)
+            cv2.imwrite("captcha.png", captcha_crop)
 
-            captcha_text = get_captcha_text(f"captcha_{i}.png")
-
-            print('\n', captcha_text)
+            captcha_text = get_captcha_text("captcha.png")
 
             if captcha_text is None:
                 unattended_roll_numbers.append(roll_number)
@@ -126,7 +109,6 @@ def find_roll_number():
                 
         except Exception as e:
             print(e)
-            unattended_roll_numbers.append(roll_number)
 
     driver.quit()
     return None  # Roll number not found
