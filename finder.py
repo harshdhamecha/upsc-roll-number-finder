@@ -10,6 +10,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import Select
+from selenium.webdriver.chrome.options import Options
 logging.getLogger('ppocr').setLevel(logging.ERROR)
 
 
@@ -45,8 +46,13 @@ def find_roll_number(args):
     base_url = "https://upsconline.nic.in/marksheet/csp_premark_2023/login.php"
     success_page_url = "https://upsconline.nic.in/marksheet/csp_premark_2023/view_detail.php?tikl="
 
+    name = 'NIKHILESH'
+    xpath = f"//*[@id='getItP']/div/div/div[2]/div/div/table[1]/tbody/tr[4]/td[2][contains(text(), '{name}')]"
+
     roll_numbers = generate_roll_numbers(args.start, args.stop)
-    driver = webdriver.Chrome()
+    chrome_options = Options()
+    if args.headless: chrome_options.add_argument("--headless")
+    driver = webdriver.Chrome(options=chrome_options)
 
     for roll_number in tqdm(roll_numbers):
 
@@ -83,7 +89,7 @@ def find_roll_number(args):
             # Take a screenshot of the entire webpage
             driver.save_screenshot(f"screenshot_{window}.png")
             captcha_image = cv2.imread(f"screenshot_{window}.png")
-            captcha_crop = captcha_image[450: 500, 650: 830, :]
+            captcha_crop = captcha_image[360: 400, 440: 570, :]
             cv2.imwrite(f"captcha_{window}.png", captcha_crop)
 
             captcha_text = get_captcha_text(f"captcha_{window}.png")
@@ -105,7 +111,13 @@ def find_roll_number(args):
 
                 # Check if the results page indicates success
                 if success_page_url in driver.current_url:
-                    return roll_number
+                    time.sleep(1)
+                    try:
+                        name_element = wait.until(EC.visibility_of_element_located((By.XPATH, xpath)))
+                        if name_element:
+                            return roll_number
+                    except:
+                        pass
                 
         except Exception as e:
             print(e)
@@ -120,7 +132,7 @@ def parse_args():
     parser.add_argument('--start', type=int, help='roll number from which to start')
     parser.add_argument('--stop', type=int, help='roll number at which to stop')
     parser.add_argument('--window', type=int, help='nth window (for saving captch iamge)')
-
+    parser.add_argument('--headless', action='store_true', help='whether to run in headless or not')
     args = parser.parse_args()
     
     return args
