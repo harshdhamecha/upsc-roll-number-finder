@@ -44,6 +44,7 @@ def find_roll_number():
     success_page_url = "https://upsconline.nic.in/marksheet/csp_premark_2023/view_detail.php?tikl="
 
     roll_numbers = generate_roll_numbers()
+    roll_numbers = ['1234567', '7654321', '7200344', '1221213']
     driver = webdriver.Chrome()
     driver.get(base_url)
 
@@ -67,14 +68,14 @@ def find_roll_number():
 
             # Select the month (August) from the dropdown using Select class
             month_dropdown = Select(driver.find_element(By.CLASS_NAME, "ui-datepicker-month"))
-            month_dropdown.select_by_visible_text("May")
+            month_dropdown.select_by_visible_text("Aug")
 
             # Select the year (1999) from the dropdown using Select class
             year_dropdown = Select(driver.find_element(By.CLASS_NAME, "ui-datepicker-year"))
             year_dropdown.select_by_visible_text("1999")
 
             # Find and click on the date 4th in the date picker
-            day_18 = driver.find_element(By.XPATH, "//a[text()='18']")
+            day_18 = driver.find_element(By.XPATH, "//a[text()='4']")
             day_18.click()
 
             time.sleep(1)
