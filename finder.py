@@ -19,7 +19,7 @@ unattended_roll_numbers = []
 # Function to generate all possible roll numbers list
 def generate_roll_numbers():
     roll_numbers = []
-    for i in range(1000134, 10000000):  # Start from 1000000 (7 digits)
+    for i in range(1000200, 2000000):  # Start from 1000000 (7 digits)
         roll_numbers.append(str(i))
     return roll_numbers
 
@@ -44,9 +44,7 @@ def find_roll_number():
     success_page_url = "https://upsconline.nic.in/marksheet/csp_premark_2023/view_detail.php?tikl="
 
     roll_numbers = generate_roll_numbers()
-    roll_numbers = ['1234567', '7654321', '7200344', '1221213']
     driver = webdriver.Chrome()
-    driver.get(base_url)
 
     for roll_number in tqdm(roll_numbers):
 
@@ -107,9 +105,6 @@ def find_roll_number():
                 if success_page_url in driver.current_url:
                     return roll_number
                 
-                else:
-                    continue
-
         except Exception as e:
             print(e)
 
