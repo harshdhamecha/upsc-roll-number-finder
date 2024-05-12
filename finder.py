@@ -1,3 +1,4 @@
+import argparse
 from tqdm import tqdm
 import re
 from paddleocr import PaddleOCR
@@ -17,9 +18,9 @@ unattended_roll_numbers = []
 
 
 # Function to generate all possible roll numbers list
-def generate_roll_numbers():
+def generate_roll_numbers(start, stop):
     roll_numbers = []
-    for i in range(1000200, 2000000):  # Start from 1000000 (7 digits)
+    for i in range(start, stop):  # Start from 1000000 (7 digits)
         roll_numbers.append(str(i))
     return roll_numbers
 
@@ -36,14 +37,15 @@ def get_captcha_text(image_path):
         return None
 
 
-def find_roll_number():
+def find_roll_number(args):
 
     global unattended_roll_numbers
+    window = args.window
 
     base_url = "https://upsconline.nic.in/marksheet/csp_premark_2023/login.php"
     success_page_url = "https://upsconline.nic.in/marksheet/csp_premark_2023/view_detail.php?tikl="
 
-    roll_numbers = generate_roll_numbers()
+    roll_numbers = generate_roll_numbers(args.start, args.stop)
     driver = webdriver.Chrome()
 
     for roll_number in tqdm(roll_numbers):
@@ -79,12 +81,12 @@ def find_roll_number():
             time.sleep(1)
 
             # Take a screenshot of the entire webpage
-            driver.save_screenshot("screenshot.png")
-            captcha_image = cv2.imread("screenshot.png")
+            driver.save_screenshot(f"screenshot_{window}.png")
+            captcha_image = cv2.imread(f"screenshot_{window}.png")
             captcha_crop = captcha_image[450: 500, 650: 830, :]
-            cv2.imwrite("captcha.png", captcha_crop)
+            cv2.imwrite(f"captcha_{window}.png", captcha_crop)
 
-            captcha_text = get_captcha_text("captcha.png")
+            captcha_text = get_captcha_text(f"captcha_{window}.png")
 
             if captcha_text is None:
                 unattended_roll_numbers.append(roll_number)
@@ -112,11 +114,25 @@ def find_roll_number():
     return None  # Roll number not found
 
 
-found_roll_number = find_roll_number()
-if found_roll_number:
-    print("Roll Number Found:", found_roll_number)
-else:
-    print("Roll Number Not Found")
-print('*' * 30)
-print(f'Unattended Roll numbers: {unattended_roll_numbers}')
-print('*' * 30)
+def parse_args():
+    
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--start', type=int, help='roll number from which to start')
+    parser.add_argument('--stop', type=int, help='roll number at which to stop')
+    parser.add_argument('--window', type=int, help='nth window (for saving captch iamge)')
+
+    args = parser.parse_args()
+    
+    return args
+
+
+if __name__ == '__main__':
+    args = parse_args()
+    found_roll_number = find_roll_number(args)
+    if found_roll_number:
+        print("Roll Number Found:", found_roll_number)
+    else:
+        print("Roll Number Not Found")
+    print('*' * 30)
+    print(f'Unattended Roll numbers: {unattended_roll_numbers}')
+    print('*' * 30)
