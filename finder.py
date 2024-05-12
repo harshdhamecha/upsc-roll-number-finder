@@ -66,14 +66,14 @@ def find_roll_number():
 
             # Select the month (August) from the dropdown using Select class
             month_dropdown = Select(driver.find_element(By.CLASS_NAME, "ui-datepicker-month"))
-            month_dropdown.select_by_visible_text("Aug")
+            month_dropdown.select_by_visible_text("May")
 
             # Select the year (1999) from the dropdown using Select class
             year_dropdown = Select(driver.find_element(By.CLASS_NAME, "ui-datepicker-year"))
             year_dropdown.select_by_visible_text("1999")
 
             # Find and click on the date 4th in the date picker
-            day_18 = driver.find_element(By.XPATH, "//a[text()='4']")
+            day_18 = driver.find_element(By.XPATH, "//a[text()='18']")
             day_18.click()
 
             time.sleep(1)
