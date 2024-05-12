@@ -55,7 +55,6 @@ def find_roll_number():
 
             # Find and fill the roll number input field
             rollno_input = driver.find_element(By.NAME, "candidate_rollno")
-            # rollno_input.clear()
             rollno_input.send_keys(roll_number)
 
             # Find and fill the date of birth input field
@@ -94,7 +93,6 @@ def find_roll_number():
             else:
                 # Find and fill the captcha input field
                 captcha_input = driver.find_element(By.NAME, "letters_code")
-                # captcha_input.clear()
                 captcha_input.send_keys(captcha_text)
 
                 # Find and click the submit button
