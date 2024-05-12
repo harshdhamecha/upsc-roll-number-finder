@@ -47,8 +47,9 @@ def find_roll_number(args):
     success_page_url = "https://upsconline.nic.in/marksheet/csp_premark_2023/view_detail.php?tikl="
 
     name = 'NIKHILESH'
-    xpath = f"//*[@id='getItP']/div/div/div[2]/div/div/table[1]/tbody/tr[4]/td[2][contains(text(), '{name}')]"
-
+    name_xpath = f"//*[@id='getItP']/div/div/div[2]/div/div/table[1]/tbody/tr[4]/td[2][contains(text(), '{name}')]"
+    error_xpath = "//*[#class='mid']/div/div/p[contains(text(), 'Error Occured')]"
+    
     roll_numbers = generate_roll_numbers(args.start, args.stop)
     chrome_options = Options()
     if args.headless: chrome_options.add_argument("--headless")
@@ -89,7 +90,7 @@ def find_roll_number(args):
             # Take a screenshot of the entire webpage
             driver.save_screenshot(f"screenshot_{window}.png")
             captcha_image = cv2.imread(f"screenshot_{window}.png")
-            captcha_crop = captcha_image[360: 400, 440: 570, :]
+            captcha_crop = captcha_image[360: 400, 440: 570, :] if args.headless else captcha_image[450: 500, 650: 830, :]
             cv2.imwrite(f"captcha_{window}.png", captcha_crop)
 
             captcha_text = get_captcha_text(f"captcha_{window}.png")
@@ -106,21 +107,22 @@ def find_roll_number(args):
                 submit_button = driver.find_element(By.NAME, "submitrollnofrm")
                 submit_button.click()
 
-                # Wait for the page to load after form submission
-                WebDriverWait(driver, 5).until(EC.url_contains(success_page_url))
-
                 # Check if the results page indicates success
                 if success_page_url in driver.current_url:
                     time.sleep(1)
                     try:
-                        name_element = wait.until(EC.visibility_of_element_located((By.XPATH, xpath)))
+                        name_element = wait.until(EC.visibility_of_element_located((By.XPATH, name_xpath)))
                         if name_element:
                             return roll_number
                     except:
                         pass
-                
+                else:
+                    error_element = wait.until(EC.visibility_of_element_located((By.XPATH, error_xpath)))
+                    if error_element:
+                        continue
+                 
         except Exception as e:
-            print(e)
+            pass
 
     driver.quit()
     return None  # Roll number not found
