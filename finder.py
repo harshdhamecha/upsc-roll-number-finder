@@ -20,10 +20,8 @@ unattended_roll_numbers = []
 
 # Function to generate all possible roll numbers list
 def generate_roll_numbers(start, stop):
-    roll_numbers = []
-    for i in range(start, stop):  # Start from 1000000 (7 digits)
-        roll_numbers.append(str(i))
-    return roll_numbers
+    for i in tqdm(range(start, stop)):  # Start from 1000000 (7 digits)
+        yield (str(i))
 
 
 # Function to extract captcha text from image
@@ -50,12 +48,11 @@ def find_roll_number(args):
     name_xpath = f"//*[@id='getItP']/div/div/div[2]/div/div/table[1]/tbody/tr[4]/td[2][contains(text(), '{name}')]"
     error_xpath = "//*[#class='mid']/div/div/p[contains(text(), 'Error Occured')]"
     
-    roll_numbers = generate_roll_numbers(args.start, args.stop)
     chrome_options = Options()
     if args.headless: chrome_options.add_argument("--headless")
     driver = webdriver.Chrome(options=chrome_options)
 
-    for roll_number in tqdm(roll_numbers):
+    for roll_number in generate_roll_numbers(args.start, args.stop):
 
         try:
             driver.refresh()
